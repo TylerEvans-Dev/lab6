@@ -100,7 +100,7 @@ int main(void)
     
     RCC->AHBENR |= RCC_AHBENR_GPIOCEN; // done to find the clock
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN; // Enables GPIOA
-    
+    RCC->APB1ENR |= (1<<29); // enabling the clock on DAC
     RCC->APB2ENR |= RCC_APB2ENR_ADCEN; // enabling the clock for ADC
     
     //sets everything to zero in the pins
@@ -121,26 +121,29 @@ int main(void)
     //now choosing the pins.
     //PA4, DAC channel 1
     // this should be bits 9 and 8.
-    GPIOA->MODER &= ~ ( (1<<9) | (1<<8));
+    GPIOA->MODER |= ((1<<9) | (1<<8));
     /*
      Be careful on mode select the channel 1
      */
     //setting the DAC to trigger enable
-    //SWTRIGR enables channel one but does it automatically
+    //CR enables channel from bits 3:5
+    DAC1->CR |= (1<<3) | (1<<4)| (1<<5);
     // this is in bit 0.
     //1 turns it on
     // this should be bit 2 and 1 sets it
-    DAC1->CR |= (1<<2);
+    //DAC1->CR &= (0<<2);
     //then to enable channel 1 is bit 0 with a value of 1
     DAC1->CR |= (1<<0);
+    //DAC1->DHR8R1 = 0;
+    int prev;
     while(1) {
      //now this is where one will run the code repeatedly
         for(uint8_t i =0; i < 32; i++){
-            //setting the values to be in the right channel 1 reg. 
+            //setting the values to be in the right channel 1 reg.
             DAC1->DHR8R1 = sine_table[i];
             // one milisecond delay as requested
             HAL_Delay(1);
-        }
+        }GPIOC->ODR ^= (1<<7);
         
      }
 
